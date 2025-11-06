@@ -118,7 +118,7 @@ model BookLoan {
   dueDate    DateTime    @map("due_date")
   returnDate DateTime?    @map("return_date")
   status     LoanStatus  @default(active)
-  fineAmount Decimal     @default(0.00) @map("fine_amount") @db.Decimal(10, 2)
+  fineAmount Float        @default(0.00) @map("fine_amount")
   finePaid   Boolean     @default(false) @map("fine_paid")
   notes      String?
   createdAt  DateTime    @default(now()) @map("created_at")
