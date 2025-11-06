@@ -107,6 +107,7 @@ model Book {
 
   // Relations
   bookLoans BookLoan[]
+  studentLoans BookLoan[]
 
   @@map("books")
 }
