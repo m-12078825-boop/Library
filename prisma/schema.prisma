@@ -48,7 +48,7 @@ model Student {
   dateOfBirth      DateTime @map("date_of_birth")
   gender           Gender
   address          String?
-  emergencyContact Json?    @map("emergency_contact")
+  emergencyContact String?  @map("emergency_contact")
   academicYear     String   @map("academic_year")
   promotionStatus  PromotionStatus @default(promoted) @map("promotion_status")
   parentGuardianId String?  @map("parent_guardian_id")
