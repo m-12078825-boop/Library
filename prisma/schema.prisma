@@ -211,7 +211,7 @@ model Incident {
 model SystemSetting {
   id          String   @id @default(cuid())
   key         String   @unique
-  value       Json
+  value       String
   description String?
   category    String
   updatedBy   String   @map("updated_by")
