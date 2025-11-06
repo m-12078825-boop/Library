@@ -26,6 +26,7 @@ model User {
   // Relations
   studentProfile      Student?      @relation("StudentUser")
   teacherClasses      Class[]       @relation("TeacherClasses")
+  studentAttendance   Attendance[]  @relation("StudentAttendance")
   recordedAttendance  Attendance[]  @relation("RecordedBy")
   createdAnnouncements Announcement[] @relation("CreatedBy")
   reportedIncidents   Incident[]    @relation("ReportedBy")
