@@ -133,7 +133,7 @@ model Attendance {
   student     User           @relation("RecordedBy", fields: [studentId], references: [id])
   classId     String         @map("class_id")
   class       Class          @relation(fields: [classId], references: [id])
-  date        DateTime       @db.Date
+  date        DateTime
   status      AttendanceStatus
   arrivalTime DateTime?      @map("arrival_time") @db.Time
   notes       String?
