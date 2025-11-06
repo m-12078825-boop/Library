@@ -175,7 +175,7 @@ model Announcement {
   targetAudience  TargetAudience    @map("target_audience")
   targetClassId   String?           @map("target_class_id")
   targetClass     Class?            @relation(fields: [targetClassId], references: [id])
-  attachmentUrls  Json?             @map("attachment_urls")
+  attachmentUrls  String?           @map("attachment_urls")
   scheduledAt     DateTime?         @map("scheduled_at")
   isPublished     Boolean           @default(false) @map("is_published")
   priority        Priority          @default(medium)
