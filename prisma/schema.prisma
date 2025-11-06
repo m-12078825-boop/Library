@@ -201,7 +201,7 @@ model Incident {
   incidentDate   DateTime     @map("incident_date")
   resolutionDate DateTime?    @map("resolution_date")
   notes          String?
-  attachmentUrls Json?        @map("attachment_urls")
+  attachmentUrls String?      @map("attachment_urls")
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime     @updatedAt @map("updated_at")
 
