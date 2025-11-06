@@ -14,7 +14,7 @@ model User {
   id           String   @id @default(cuid())
   email        String   @unique
   passwordHash String   @map("password_hash")
-  role         UserRole
+  role         String   @default("student") // super_admin, admin, librarian, teacher, student, parent
   firstName    String   @map("first_name")
   lastName     String   @map("last_name")
   profileImage String?  @map("profile_image")
@@ -32,8 +32,10 @@ model User {
   reportedIncidents   Incident[]    @relation("ReportedBy")
   resolvedIncidents   Incident[]    @relation("ResolvedBy")
   bookLoans           BookLoan[]
+  parentGuardians     Student[]     @relation("ParentGuardian")
   systemSettings      SystemSetting[]
   timetableEntries    Timetable[]
+  incidentStudents    Incident[]    @relation("IncidentStudent")
 
   @@map("users")
 }
@@ -47,18 +49,18 @@ model Student {
   class            Class    @relation(fields: [classId], references: [id])
   enrollmentDate   DateTime @default(now()) @map("enrollment_date")
   dateOfBirth      DateTime @map("date_of_birth")
-  gender           Gender
+  gender           String   @default("other") // male, female, other
   address          String?
   emergencyContact String?  @map("emergency_contact")
   academicYear     String   @map("academic_year")
-  promotionStatus  PromotionStatus @default(promoted) @map("promotion_status")
+  promotionStatus  String   @default("promoted") @map("promotion_status") // promoted, retained, graduated
   parentGuardianId String?  @map("parent_guardian_id")
   parentGuardian   User?    @relation("ParentGuardian", fields: [parentGuardianId], references: [id])
 
   // Relations
-  attendance   Attendance[]
-  bookLoans    BookLoan[]
-  incidents    Incident[]
+  attendance Attendance[]
+  bookLoans  BookLoan[]
+  incidents  Incident[]
 
   @@map("students")
 }
@@ -77,10 +79,10 @@ model Class {
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   // Relations
-  students       Student[]
-  attendance     Attendance[]
-  timetable      Timetable[]
-  announcements  Announcement[]
+  students      Student[]
+  attendance    Attendance[]
+  timetable     Timetable[]
+  announcements Announcement[]
 
   @@map("classes")
 }
@@ -110,38 +112,38 @@ model Book {
 }
 
 model BookLoan {
-  id         String      @id @default(cuid())
-  bookId     String      @map("book_id")
-  book       Book        @relation(fields: [bookId], references: [id])
-  studentId  String      @map("student_id")
-  student    User        @relation(fields: [studentId], references: [id])
-  loanDate   DateTime    @default(now()) @map("loan_date")
-  dueDate    DateTime    @map("due_date")
-  returnDate DateTime?    @map("return_date")
-  status     LoanStatus  @default(active)
-  fineAmount Float        @default(0.00) @map("fine_amount")
-  finePaid   Boolean     @default(false) @map("fine_paid")
+  id         String   @id @default(cuid())
+  bookId     String   @map("book_id")
+  book       Book     @relation(fields: [bookId], references: [id])
+  studentId  String   @map("student_id")
+  student    User     @relation(fields: [studentId], references: [id])
+  loanDate   DateTime @default(now()) @map("loan_date")
+  dueDate    DateTime @map("due_date")
+  returnDate DateTime? @map("return_date")
+  status     String   @default("active") // active, returned, overdue
+  fineAmount Float    @default(0.00) @map("fine_amount")
+  finePaid   Boolean  @default(false) @map("fine_paid")
   notes      String?
-  createdAt  DateTime    @default(now()) @map("created_at")
-  updatedAt  DateTime    @updatedAt @map("updated_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("book_loans")
 }
 
 model Attendance {
-  id          String         @id @default(cuid())
-  studentId   String         @map("student_id")
-  student     User           @relation("StudentAttendance", fields: [studentId], references: [id])
-  classId     String         @map("class_id")
-  class       Class          @relation(fields: [classId], references: [id])
+  id          String   @id @default(cuid())
+  studentId   String   @map("student_id")
+  student     User     @relation("StudentAttendance", fields: [studentId], references: [id])
+  classId     String   @map("class_id")
+  class       Class    @relation(fields: [classId], references: [id])
   date        DateTime
-  status      AttendanceStatus
-  arrivalTime String?        @map("arrival_time")
+  status      String   // present, absent, late, excused
+  arrivalTime String?  @map("arrival_time")
   notes       String?
-  recordedBy  String         @map("recorded_by")
-  recorder    User           @relation("RecordedBy", fields: [recordedBy], references: [id])
-  recordedAt  DateTime       @default(now()) @map("recorded_at")
-  updatedAt   DateTime       @updatedAt @map("updated_at")
+  recordedBy  String   @map("recorded_by")
+  recorder    User     @relation("RecordedBy", fields: [recordedBy], references: [id])
+  recordedAt  DateTime @default(now()) @map("recorded_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@unique([studentId, date])
   @@map("attendance_records")
@@ -167,43 +169,43 @@ model Timetable {
 }
 
 model Announcement {
-  id              String            @id @default(cuid())
+  id              String   @id @default(cuid())
   title           String
   content         String
-  authorId        String            @map("author_id")
-  author          User              @relation("CreatedBy", fields: [authorId], references: [id])
-  targetAudience  TargetAudience    @map("target_audience")
-  targetClassId   String?           @map("target_class_id")
-  targetClass     Class?            @relation(fields: [targetClassId], references: [id])
-  attachmentUrls  String?           @map("attachment_urls")
-  scheduledAt     DateTime?         @map("scheduled_at")
-  isPublished     Boolean           @default(false) @map("is_published")
-  priority        Priority          @default(medium)
-  createdAt       DateTime          @default(now()) @map("created_at")
-  updatedAt       DateTime          @updatedAt @map("updated_at")
+  authorId        String   @map("author_id")
+  author          User     @relation("CreatedBy", fields: [authorId], references: [id])
+  targetAudience  String   @map("target_audience") // all, students, teachers, parents, specific_class
+  targetClassId   String?  @map("target_class_id")
+  targetClass     Class?   @relation(fields: [targetClassId], references: [id])
+  attachmentUrls  String?  @map("attachment_urls")
+  scheduledAt     DateTime? @map("scheduled_at")
+  isPublished     Boolean  @default(false) @map("is_published")
+  priority        String   @default("medium") // low, medium, high, urgent
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   @@map("announcements")
 }
 
 model Incident {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   title          String
   description    String
-  incidentType   IncidentType @map("incident_type")
-  severity       Severity
-  studentId      String?      @map("student_id")
-  student        User?        @relation(fields: [studentId], references: [id])
-  reportedBy     String       @map("reported_by")
-  reporter       User         @relation("ReportedBy", fields: [reportedBy], references: [id])
-  resolvedBy     String?      @map("resolved_by")
-  resolver       User?        @relation("ResolvedBy", fields: [resolvedBy], references: [id])
-  status         IncidentStatus @default(open)
-  incidentDate   DateTime     @map("incident_date")
-  resolutionDate DateTime?    @map("resolution_date")
+  incidentType   String   @map("incident_type") // academic, behavioral, medical, other
+  severity       String   // low, medium, high, critical
+  studentId      String?  @map("student_id")
+  student        User?    @relation("IncidentStudent", fields: [studentId], references: [id])
+  reportedBy     String   @map("reported_by")
+  reporter       User     @relation("ReportedBy", fields: [reportedBy], references: [id])
+  resolvedBy     String?  @map("resolved_by")
+  resolver       User?    @relation("ResolvedBy", fields: [resolvedBy], references: [id])
+  status         String   @default("open") // open, investigating, resolved, closed
+  incidentDate   DateTime @map("incident_date")
+  resolutionDate DateTime? @map("resolution_date")
   notes          String?
-  attachmentUrls String?      @map("attachment_urls")
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
+  attachmentUrls String?  @map("attachment_urls")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   @@map("incidents")
 }
@@ -219,75 +221,4 @@ model SystemSetting {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("system_settings")
-}
-
-// Enums
-enum UserRole {
-  super_admin
-  admin
-  librarian
-  teacher
-  student
-  parent
-}
-
-enum Gender {
-  male
-  female
-  other
-}
-
-enum PromotionStatus {
-  promoted
-  retained
-  graduated
-}
-
-enum LoanStatus {
-  active
-  returned
-  overdue
-}
-
-enum AttendanceStatus {
-  present
-  absent
-  late
-  excused
-}
-
-enum TargetAudience {
-  all
-  students
-  teachers
-  parents
-  specific_class
-}
-
-enum Priority {
-  low
-  medium
-  high
-  urgent
-}
-
-enum IncidentType {
-  academic
-  behavioral
-  medical
-  other
-}
-
-enum Severity {
-  low
-  medium
-  high
-  critical
-}
-
-enum IncidentStatus {
-  open
-  investigating
-  resolved
-  closed
 }
